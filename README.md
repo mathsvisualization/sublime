@@ -8,7 +8,6 @@ Add some keybindings to reference these commands. Here's what I have inside my k
 
 ```
     { "keys": ["shift+alt+r"], "command": "manim_run_scene" },
-    { "keys": ["shift+alt+q"], "command": "ipython_run"},
     { "keys": ["alt+r"], "command": "manim_checkpoint_paste" },
     { "keys": ["ctrl+shift+r"], "command": "manim_recorded_checkpoint_paste" },
     { "keys": ["ctrl+alt+r"], "command": "manim_skipped_checkpoint_paste" },
