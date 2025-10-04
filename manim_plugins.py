@@ -208,37 +208,59 @@ class OpenMirroredDirectory(sublime_plugin.TextCommand):
 class CommentFold(sublime_plugin.TextCommand):
     def run(self, edit):
         view = self.view
-        regions = view.sel()
-        regions_to_fold = []
-        for region in regions:
-            reg_str = view.substr(region)
+        new_regions_to_fold = []
 
-            lines = reg_str.split("\n")
-            view_index = region.begin()
+        for sel in view.sel():
+            # Check if cursor/selection is inside a folded region
+            folded_here = None
+            for fr in view.folded_regions():
+                if fr.contains(sel):
+                    folded_here = fr
+                    break
 
+            if folded_here:
+                # Unfold and select the full lines of folded block
+                view.unfold(folded_here)
+                full_line_region = view.line(folded_here)
+                view.sel().clear()
+                view.sel().add(full_line_region)
+                continue
+
+            # Else, fold comments as per original logic
+            region_str = view.substr(sel)
+            lines = region_str.split("\n")
+            region_start = sel.begin()
             indent_level = None
-            last_full_line_end = view_index
+            last_full_line_end = region_start
             last_comment_line_end = None
             last_line_was_comment = False
+
             for line in lines:
-                line_end_point = view_index + len(line)
+                line_end_point = region_start + len(line)
                 if line.lstrip().startswith("#"):
                     if indent_level is None:
                         indent_level = len(line) - len(line.lstrip())
                     if len(line) - len(line.lstrip()) == indent_level and not last_line_was_comment:
                         if last_comment_line_end:
-                            regions_to_fold.append(sublime.Region(
+                            new_regions_to_fold.append(sublime.Region(
                                 last_comment_line_end,
-                                last_full_line_end,
+                                last_full_line_end
                             ))
                         last_comment_line_end = line_end_point
+                    last_line_was_comment = True
                 else:
                     last_line_was_comment = False
+
                 if line.strip():
                     last_full_line_end = line_end_point
-                view_index = line_end_point + 1
+
+                region_start = line_end_point + 1
+
             if last_comment_line_end:
-                regions_to_fold.append(sublime.Region(
-                    last_comment_line_end, region.end(),
+                new_regions_to_fold.append(sublime.Region(
+                    last_comment_line_end,
+                    sel.end()
                 ))
-        self.view.fold(regions_to_fold)
+
+        # Fold all new regions
+        view.fold(new_regions_to_fold)
