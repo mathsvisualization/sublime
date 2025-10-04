@@ -6,6 +6,12 @@ import threading
 import re
 import time
 
+def autosave_command(func):
+    def wrapper(self, edit, *args, **kwargs):
+        self.view.run_command("save")
+        return func(self, edit, *args, **kwargs)
+    return wrapper
+
 
 def get_command(view, window):
     file_path = os.path.join(
@@ -131,10 +137,10 @@ def checkpoint_paste_wrapper(view, arg_str=""):
 
 
 class ManimRunScene(sublime_plugin.TextCommand):
+    @autosave_command
     def run(self, edit):
         view = self.view
         window = view.window()
-        window.run_command("save")
         command, enter = get_command(view, window)
         # If one wants to run it in a different terminal,
         # it's often to write to a file
@@ -164,6 +170,7 @@ class ManimRunScene(sublime_plugin.TextCommand):
 
 
 class ManimExit(sublime_plugin.TextCommand):
+    @autosave_command
     def run(self, edit):
         send_terminus_command("\x03quit\n", center=False)
         time.sleep(0.01)
@@ -171,26 +178,31 @@ class ManimExit(sublime_plugin.TextCommand):
 
 
 class ManimCheckpointPaste(sublime_plugin.TextCommand):
+    @autosave_command
     def run(self, edit):
         checkpoint_paste_wrapper(self.view)
 
 
 class ManimReload(sublime_plugin.TextCommand):
+    @autosave_command
     def run(self, edit):
         send_terminus_command("reload()", clear=True, enter=True)
 
 
 class ManimRecordedCheckpointPaste(sublime_plugin.TextCommand):
+    @autosave_command
     def run(self, edit):
         checkpoint_paste_wrapper(self.view, arg_str="record=True")
 
 
 class ManimSkippedCheckpointPaste(sublime_plugin.TextCommand):
+    @autosave_command
     def run(self, edit):
         checkpoint_paste_wrapper(self.view, arg_str="skip=True")
 
 
 class OpenMirroredDirectory(sublime_plugin.TextCommand):
+    @autosave_command
     def run(self, edit):
         window = self.view.window()
         path = window.extract_variables()["file_path"]
@@ -206,6 +218,7 @@ class OpenMirroredDirectory(sublime_plugin.TextCommand):
 
 
 class CommentFold(sublime_plugin.TextCommand):
+    @autosave_command
     def run(self, edit):
         view = self.view
         new_regions_to_fold = []
