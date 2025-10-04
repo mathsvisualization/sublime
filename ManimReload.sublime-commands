@@ -1,0 +1,6 @@
+[
+    {
+        "caption": "ManimReload: run `reload()` in terminal",
+        "command": "manim_reload"
+    }
+]

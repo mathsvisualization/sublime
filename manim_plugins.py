@@ -175,6 +175,11 @@ class ManimCheckpointPaste(sublime_plugin.TextCommand):
         checkpoint_paste_wrapper(self.view)
 
 
+class ManimReload(sublime_plugin.TextCommand):
+    def run(self, edit):
+        send_terminus_command("reload()", clear=True, enter=True)
+
+
 class ManimRecordedCheckpointPaste(sublime_plugin.TextCommand):
     def run(self, edit):
         checkpoint_paste_wrapper(self.view, arg_str="record=True")
